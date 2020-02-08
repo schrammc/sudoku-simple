@@ -18,13 +18,7 @@ jobs:
     - uses: actions/cache@v1
       with:
         path: .stack-work
-        key: ${{ runner.os }}-packageyaml-${{ hashFiles('**/*.hs') }}
-        restore-keys: |
-          ${{ runner.os }}-packageyaml-
-    - uses: actions/cache@v1
-      with:
-        path: .stack-work
-        key: ${{ runner.os }}-stackwork-${{ hashFiles('sudoku-simple.cabal') }}
+        key: ${{ runner.os }}-stackwork-${{ hashFiles('**/*.hs') }}
         restore-keys: |
           ${{ runner.os }}-stackwork-
     - name: Build
