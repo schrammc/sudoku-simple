@@ -12,7 +12,7 @@ jobs:
     - uses: actions/cache@v1
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-packageyaml-${{ hashFiles('package.yaml') }}
+        key: ${{ runner.os }}-packageyaml-${{ hashFiles('sudoku-simple.cabal') }}
         restore-keys: |
           ${{ runner.os }}-packageyaml-
     - name: Build
