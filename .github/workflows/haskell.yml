@@ -15,6 +15,11 @@ jobs:
         key: ${{ runner.os }}-packageyaml-${{ hashFiles('sudoku-simple.cabal') }}
         restore-keys: |
           ${{ runner.os }}-packageyaml-
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-packageyaml-${{ hashFiles('**/*.hs') }}
+        restore-keys: |
+          ${{ runner.os }}-packageyaml-
     - uses: actions/cache@v1
       with:
         path: .stack-work
