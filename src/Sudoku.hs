@@ -4,13 +4,14 @@ module Sudoku where
 import           Data.Char (isDigit)
 import           Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
+import qualified Data.IntSet as IS
 import           Data.Maybe
 
 newtype Sudoku = Sudoku (IntMap Int)
                  deriving (Show, Eq)
 
 exampleSudoku :: String
-exampleSudoku = "769.....8....5....8.....34.....34..7.8...7..........9.63..78.....5.69......2.54.."
+exampleSudoku = "1...5.8.3..817..544.2..36.....534...36.7..............2....7......685.7.8...4...."
 
 printBoard :: Sudoku -> IO ()
 printBoard = putStrLn . formatBoard
@@ -32,8 +33,43 @@ formatBoard (Sudoku mp) = go [0 .. 80]
             | n > 0 && n `mod` 3 == 0 -> "|" ++ rest
             | otherwise -> rest
 
+-- | Points on the sudoku field that don't have a number yet
+freePoints :: Sudoku -> [Int]
+freePoints (Sudoku mp) = filter (\x -> not (IM.member x mp)) [0 ..80]
+
+solutions :: Sudoku -> [Sudoku]
+solutions s = solvePoints s (freePoints s)
+
+solvePoints :: Sudoku -> [Int] -> [Sudoku]
+solvePoints sudoku [] = [sudoku]
+solvePoints sudoku (p:ps) = do
+  sudoku' <- pointSolutions sudoku p
+  solvePoints sudoku' ps
+
+pointSolutions :: Sudoku -> Int -> [Sudoku]
+pointSolutions sudoku@(Sudoku mp) field =
+  fmap (\value -> Sudoku (IM.insert field value mp)) (possibleValues sudoku field)
+
+possibleValues :: Sudoku -> Int -> [Int]
+possibleValues sudoku@(Sudoku mp) field
+  | Just k <- IM.lookup field mp = []
+  | otherwise =
+    IS.toList
+    $ IS.difference (IS.fromList [1..9])
+    $ IS.fromList
+    $ concat [ valuesInRow sudoku field
+             , valuesInColumn sudoku field
+             , valuesInBox sudoku field]
+
+-- Check if a sudoku puzzle is solved
 isSolved :: Sudoku -> Bool
-isSolved = undefined
+isSolved s = rowsOK && columnsOK && boxesOK
+  where
+    rowsOK = all (== allNumbers) $ (IS.fromList  . valuesInRow s) <$> [0..8]
+    columnsOK = all (== allNumbers) $ (IS.fromList  . valuesInColumn s) <$> [0..8]
+    boxesOK = all (== allNumbers) $ (IS.fromList . valuesInBox s) <$> boxTopLeftPoints
+    boxTopLeftPoints = concat $ take 3 $ iterate (fmap (+27)) [0, 3, 6]
+    allNumbers = IS.fromList [1..9]
 
 valuesInBox :: Sudoku -> Int -> [Int]
 valuesInBox (Sudoku mp) pos = do
@@ -47,7 +83,7 @@ valuesInBox (Sudoku mp) pos = do
 valuesInRow :: Sudoku -> Int -> [Int]
 valuesInRow (Sudoku mp) pos = do
   let rowStart = pos - (pos `mod` 9)
-  k <- [rowStart .. rowStart + 9]
+  k <- [rowStart .. rowStart + 8]
   maybe [] (:[]) (IM.lookup k mp)
 
 valuesInColumn :: Sudoku -> Int -> [Int]
