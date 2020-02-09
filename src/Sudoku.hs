@@ -105,7 +105,7 @@ valuesInColumn (Sudoku mp) pos = do
 -- | Parse a one line sudoku as output by: https://qqwing.com/generate.html
 parseSudoku :: String -> Maybe Sudoku
 parseSudoku xs
-  | length xs /= 81 && any (not . validChar) xs = Nothing
+  | length xs /= 81 || any (not . validChar) xs = Nothing
   | otherwise =
     Just
     $ Sudoku
